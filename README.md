@@ -1,6 +1,9 @@
 # AWSCognitoKiller
 AWS Cognito Misconiguration Automation Check
 
+## Requirements:
+- Install AWS CLI
+
 ## Currently Supported:
 ### Automated Check Unauthenticated Misconfigurations:
 - Sign Up Permission Via Client Id - Authentication bypass due to
