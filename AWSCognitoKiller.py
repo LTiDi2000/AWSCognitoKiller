@@ -1,20 +1,12 @@
 import requests
 import json
-from termcolor import colored
 import argparse
-import os
 import subprocess
 from subprocess import PIPE
-from urllib3.util.retry import Retry
-from requests.adapters import HTTPAdapter
 from enumerate_iam.main import enumerate_iam
-import urllib.parse
 
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
-global HTTP_CONFIG
-HTTP_CONFIG = None
 
 class ExploitAWSCognito:
 	def __init__(self, region, username, password):
@@ -84,7 +76,7 @@ class ExploitAWSCognito:
 
 
 if __name__ == "__main__":
-	msg = "AWSCognitoKiller"
+	msg = "AWSCognitoKiller\nregion + username + password are required!!!\nExample Usage: python .\AWSCognitoKiller.py -region \"us-east-1\" -userPoolId \"us-east-1_f969OmVb5\" -clientId \"72ivtupb7fe0u5naa3jpu720k7\" -username \"ltidi@wearehackerone.com\" -password \"Abcd@1234\""
 	parser = argparse.ArgumentParser(description=msg)
 	parser.add_argument("-region", "--region", help = "Application Region")
 	parser.add_argument("-userPoolId", "--user-pool-id", help = "User Pool ID")
@@ -94,6 +86,9 @@ if __name__ == "__main__":
 	parser.add_argument("-password", "--password", help = "Password")
 
 	args = parser.parse_args()
+	if args.region == None or args.username == None or args.password == None:
+		print(msg)
+		exit()
 
 	exploit_instance = ExploitAWSCognito(args.region.strip(), args.username.strip(), args.password.strip())
 
