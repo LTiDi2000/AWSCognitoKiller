@@ -5,8 +5,8 @@ AWS Cognito Misconiguration Automation Check
 - Install AWS CLI
 
 ## Currently Supported:
-### Automated Check Unauthenticated Misconfigurations:
-- Sign Up Permission Via Client Id - Authentication bypass due to
+### Automated Check Pre-Authen Misconfigurations:
+- Sign Up Via Client Id - Authentication bypass due to
 enabled Signup API action
 - Generate AWS credentials from Identity ID - Unauthorized access to AWS
 services due to Liberal AWS Credentials
@@ -18,6 +18,8 @@ services due to Liberal AWS Credentials
 through writable user attributes
 - Updating email attribute
 before verification
+##### Pre-Authen Misconfigurations:
+- Sign Up Via Client Id + Client Secret When Application Allows SignUp but Need Proper Secret Hash
 
 #### References:
 - https://www.yassineaboukir.com/talks/NahamConEU2022.pdf
