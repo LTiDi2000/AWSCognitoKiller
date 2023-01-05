@@ -11,6 +11,7 @@ enabled Signup API action
 - Generate AWS credentials from Identity ID - Unauthorized access to AWS
 services due to Liberal AWS Credentials
 - Enumerate IAM from Generated AWS credentials
+- Sign Up Via Client Id + Client Secret When Application Allows SignUp but Need Proper Secret Hash
 
 #### TODO:
 ##### Post-Authen Misconfigurations:
@@ -18,8 +19,7 @@ services due to Liberal AWS Credentials
 through writable user attributes
 - Updating email attribute
 before verification
-##### Pre-Authen Misconfigurations:
-- Sign Up Via Client Id + Client Secret When Application Allows SignUp but Need Proper Secret Hash
+
 
 #### References:
 - https://www.yassineaboukir.com/talks/NahamConEU2022.pdf
