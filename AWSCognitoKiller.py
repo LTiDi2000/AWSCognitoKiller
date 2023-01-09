@@ -145,11 +145,6 @@ class ExploitAWSCognito:
 					self.logProc(f"\t[!] Update Attribute {attribute['Name']} - Yes")
 					self.logProc(f"\t[+] {stdout}")
 			
-
-
-		
-
-
 	def logProc(self, message):
 		print(f"{message}")
 
