@@ -150,7 +150,6 @@ class ExploitAWSCognito:
 
 	def logError(self, message):
 		print(f"{message}")
-		
 
 
 if __name__ == "__main__":
@@ -164,9 +163,9 @@ if __name__ == "__main__":
 	parser.add_argument("-clientId", "--client-id", help = "Client ID")
 	parser.add_argument("-identityPoolId", "--identity-pool-id", help = "Identity Pool ID")
 	parser.add_argument("-cognitosecret", "--cognito-secret", help = "Cognito Secret")
+	parser.add_argument("-accesstoken", "--access-token", help = "AWS Cognito Access Token")
 	parser.add_argument("-username", "--username", help = "Username", required=True)
 	parser.add_argument("-password", "--password", help = "Password", required=True)
-	parser.add_argument("-accesstoken", "--access-token", help = "AWS Cognito Access Token", required=True)
 
 	parser.add_argument("-enumiam", "--enum-iam", help = "Enum IAM", action=argparse.BooleanOptionalAction)
 	parser.add_argument("-preauthcheck", "--preauth-check", help = "PreAuthen Check", action=argparse.BooleanOptionalAction)
