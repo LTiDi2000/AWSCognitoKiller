@@ -116,6 +116,9 @@ class ExploitAWSCognito:
 					if self.enumiam:
 						enumerate_iam(AccessKeyId, SecretKey, SessionToken, self.region)
 
+	def postauthen_exploit(self):
+		pass
+
 
 	def logProc(self, message):
 		print(f"{message}")
