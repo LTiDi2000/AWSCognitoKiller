@@ -13,10 +13,11 @@ services due to Liberal AWS Credentials
 - Enumerate IAM from Generated AWS credentials
 - Sign Up Via Client Id + Client Secret When Application Allows SignUp but Need Proper Secret Hash
 
-#### TODO:
-##### Post-Authen Misconfigurations:
+### Post-Authen Misconfigurations:
 - Privilege escalation
 through writable user attributes
+
+#### TODO:
 - Updating email attribute
 before verification
 
