@@ -51,8 +51,8 @@ class ExploitAWSCognito:
 				self.logProc(f"[+] {self.region}:{self.clientId} - Force SignUp Check stdout: {stdout}")
 			if len(stderr) > 0:
 				self.logError(f"[+] {self.region}:{self.clientId} - Force SignUp Check stderr: {stderr}")
-				if b"InvalidParameterException" in stderr:
-								self.logError(f"[+] {self.region}:{self.clientId} - Might be vuln but you need to manual modify sign up parameter!")
+				# if b"InvalidParameterException" in stderr:
+				# 	self.logError(f"[+] {self.region}:{self.clientId} - Might be vuln but you need to manual modify sign up parameter!")
 				if b'is configured for secret but secret was not received' in stderr:
 					if self.cognitoSecret:
 						secret_hash = base64.b64encode(hmac.new(self.cognitoSecret.encode(), msg=f"{self.username}{self.clientId}".encode(), digestmod=hashlib.sha256).digest())
@@ -170,10 +170,8 @@ if __name__ == "__main__":
 	parser.add_argument("-enumiam", "--enum-iam", help = "Enum IAM", action=argparse.BooleanOptionalAction)
 	parser.add_argument("-preauthcheck", "--preauth-check", help = "PreAuthen Check", action=argparse.BooleanOptionalAction)
 	parser.add_argument("-postauthcheck", "--postauth-check", help = "PostAuthen Check", action=argparse.BooleanOptionalAction)
-	
 
 	args = parser.parse_args()
-	print(args, "enum_iam" in args)
 
 	exploit_instance = ExploitAWSCognito(args.username.strip(), args.password.strip(), args.enum_iam)
 
